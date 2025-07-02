@@ -54,8 +54,86 @@ ESPERAR_TECLA:
     INT 16H              ; Espera una tecla
     CMP AL, 'S'          ; Si presionan "S", regresar al menú
     JE  START            ; Si es "S", regresa al menú
-    ; Aca agregar logica para manejar otras teclas si es necesario
+    CMP AL, '1'          ; Si presionan "1", ingresar texto
+    JE  INGRESAR_TEXTO   ; Si es "1", ir a ingresar texto
+    CMP AL, '2'          ; Si presionan "2", opción figura única
+    JE  DIBUJAR_FIGURA_UNICA ; Si es "2", dibujar figura única
+    CMP AL, '3'          ; Si presionan "3", opción figura compuesta
+    JE  DIBUJAR_FIGURA_COMPUESTA ; Si es "3", dibujar figura compuesta
+    CMP AL, '4'          ; Si presionan "4", salir
+    JE  SALIR            ; Si es "4", salir
     RET
+
+;------------------ INGRESAR TEXTO -----------------------
+INGRESAR_TEXTO:
+    ; Mostrar mensaje pidiendo ingresar el nombre
+    MOV AH, 09H
+    MOV DX, MENSAJE_INGRESAR
+    INT 21H
+
+    ; Leer cadena (nombre y apellido) con buffer
+    MOV AH, 0AH
+    MOV DX, BUFFER
+    INT 21H
+
+    ; Mostrar el texto ingresado
+    CALL MOSTRAR_TEXTO
+
+    ; Regresar al menú
+    CALL MOSTRAR_MENU
+    RET
+
+;------------------ MOSTRAR TEXTO -----------------------
+MOSTRAR_TEXTO:
+    MOV SI, OFFSET BUFFER + 2      ; Saltar los 2 primeros bytes del buffer
+    MOV CX, [BUFFER+1]             ; Longitud del texto ingresado
+    MOV DX, 160                    ; Coordenada Y para mostrar el texto (Y=160)
+
+MOSTRAR_TEXTO_LOOP:
+    MOV AH, 0Ch
+    MOV AL, [SI]                   ; Cargar carácter de la cadena
+    MOV BH, 00h                    ; Pág. de video 0
+    INT 10h                        ; Mostrar el carácter en pantalla
+    INC SI
+    LOOP MOSTRAR_TEXTO_LOOP
+    RET
+
+;------------------ DIBUJAR FIGURA ÚNICA ------------------------
+DIBUJAR_FIGURA_UNICA:
+    ; Dibujar cuadrado amarillo (figura única)
+    MOV AH, 0Ch
+    MOV AL, 0Eh          ; Amarillo
+    MOV BH, 00H
+    MOV DX, 180          ; Coordenada Y para el cuadrado
+    MOV BP, 0
+CARA_FILAS_UNICA:
+    MOV CX, 260
+CARA_COLS_UNICA:
+    INT 10H
+    INC CX
+    CMP CX, 379
+    JLE CARA_COLS_UNICA
+    INC DX
+    INC BP
+    CMP BP, 120
+    JL  CARA_FILAS_UNICA
+    RET
+
+;------------------ DIBUJAR FIGURA COMPUESTA -------------------
+DIBUJAR_FIGURA_COMPUESTA:
+    ; Dibujar la cara de un gato (cara cuadrada, orejas, ojos, bigotes)
+    CALL DIBUJAR_CARA
+    CALL DIBUJAR_OREJA_IZQ
+    CALL DIBUJAR_OREJA_DER
+    CALL DIBUJAR_OJOS
+    CALL DIBUJAR_NARIZ
+    CALL DIBUJAR_BIGOTES
+    RET
+
+;------------------ SALIR -----------------------------
+SALIR:
+    MOV AH, 4Ch
+    INT 21h
 
 ;------------------ MENSAJES --------------------------
 MENSAJE_TITULO DB "Parcial final de Arquitectura de Computadoras", 13, 10, "$"
@@ -64,3 +142,6 @@ MENSAJE_OPCION2 DB "2. Mostrar figura unica", 13, 10, "$"
 MENSAJE_OPCION3 DB "3. Mostrar figura compuesta", 13, 10, "$"
 MENSAJE_OPCION4 DB "4. Salir del programa", 13, 10, "$"
 MENSAJE_REGRESAR DB "Para regresar presione 'S'", 13, 10, "$"
+MENSAJE_INGRESAR DB "Ingrese su nombre y apellido: $"
+BUFFER  DB 50, 0              ; El tamaño máximo de la cadena es 50 caracteres
+        TIMES 50 DB 0         ; Espacio para la cadena

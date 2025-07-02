@@ -1,0 +1,66 @@
+ORG 100H
+SECTION .TEXT
+
+START:
+    CALL INICIAR_MODO_VIDEO
+    CALL MOSTRAR_MENU
+    CALL ESPERAR_TECLA
+    INT 20H
+
+;------------------ INICIAR MODO VIDEO 12h -----------------
+INICIAR_MODO_VIDEO:
+    MOV AH, 00H
+    MOV AL, 12H          ; VIDEO 640×480, 16 colores
+    INT 10H
+    RET
+
+;------------------ MOSTRAR MENÚ -------------------------
+MOSTRAR_MENU:
+    ; Titulo: "Parcial final de Arquitectura"
+    MOV AH, 09H
+    MOV DX, MENSAJE_TITULO
+    INT 21H
+
+    ; Opción 1
+    MOV AH, 09H
+    MOV DX, MENSAJE_OPCION1
+    INT 21H
+
+    ; Opción 2
+    MOV AH, 09H
+    MOV DX, MENSAJE_OPCION2
+    INT 21H
+
+    ; Opción 3
+    MOV AH, 09H
+    MOV DX, MENSAJE_OPCION3
+    INT 21H
+
+    ; Opción 4
+    MOV AH, 09H
+    MOV DX, MENSAJE_OPCION4
+    INT 21H
+
+    ; Opcional: "S" para regresar
+    MOV AH, 09H
+    MOV DX, MENSAJE_REGRESAR
+    INT 21H
+
+    RET
+
+;------------------ ESPERAR TECLA -----------------------
+ESPERAR_TECLA:
+    MOV AH, 00H
+    INT 16H              ; Espera una tecla
+    CMP AL, 'S'          ; Si presionan "S", regresar al menú
+    JE  START            ; Si es "S", regresa al menú
+    ; Aca agregar logica para manejar otras teclas si es necesario
+    RET
+
+;------------------ MENSAJES --------------------------
+MENSAJE_TITULO DB "Parcial final de Arquitectura de Computadoras", 13, 10, "$"
+MENSAJE_OPCION1 DB "1. Ingresar texto desde el teclado", 13, 10, "$"
+MENSAJE_OPCION2 DB "2. Mostrar figura unica", 13, 10, "$"
+MENSAJE_OPCION3 DB "3. Mostrar figura compuesta", 13, 10, "$"
+MENSAJE_OPCION4 DB "4. Salir del programa", 13, 10, "$"
+MENSAJE_REGRESAR DB "Para regresar presione 'S'", 13, 10, "$"
